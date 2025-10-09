@@ -7,7 +7,7 @@ on:
 
 jobs:
   audit-prs:
-    timeout-minutes: 15
+    timeout-minutes: 2000
     if: ${{ github.repository == 'Astrodevil/nebius-cli' }}
     permissions:
       contents: read
