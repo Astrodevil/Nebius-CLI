@@ -43,6 +43,10 @@ To get started with Nebius CLI, you'll need to authenticate using your Nebius AP
    ```
 
 > [!NOTE]
+> Model in .env file has top priority over .nebius/settings.json the model in .env will overwrite any model in .nebius/settings.json. So if you want to make a model persistent, add it to .env file.
+
+
+> [!NOTE]
 > Your API key is securely stored in your system's keychain after the first successful authentication. You won't need to enter it again unless you revoke it or clear your credentials.
 
 ## 🔧 GitHub Workflow Configuration

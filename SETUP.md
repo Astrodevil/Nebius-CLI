@@ -143,12 +143,16 @@ concurrency:
 npm ci
 
 # Build the project
-npm run build:all
+npm run build
 
 # Run tests
 npm test
 
-# Start development server
+# Install dependencies and link
+npm install .
+npm link
+
+# Start development server (local dev only)
 npm start
 ```
 
@@ -161,7 +165,7 @@ npm version [major|minor|patch|premajor|preminor|prepatch|prerelease]
 npm run build:production
 
 # Verify the build
-npm run test:all
+npm run test
 
 # Publish to npm
 npm publish --access public --tag latest

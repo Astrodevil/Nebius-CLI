@@ -520,12 +520,17 @@ export const useGeminiStream = (
 
   const processGeminiStreamEvents = useCallback(
     async (
-      stream: AsyncIterable<GeminiEvent>,
+      stream: AsyncGenerator<GeminiEvent>,
       userMessageTimestamp: number,
-      signal: AbortSignal,
-    ): Promise<StreamProcessingStatus> => {
+      abortSignal: AbortSignal,
+    ) => {
       let geminiMessageBuffer = '';
-      const toolCallRequests: ToolCallRequestInfo[] = [];
+      let isFirstChunk = true;
+      let lastErrorEvent: ErrorEvent | undefined;
+      let lastChatCompressedEvent: ServerGeminiChatCompressedEvent | undefined;
+      let lastFinishedEvent: ServerGeminiFinishedEvent | undefined;
+      let toolCallRequests: any[] = [];
+
       for await (const event of stream) {
         switch (event.type) {
           case ServerGeminiEventType.Thought:
@@ -545,9 +550,11 @@ export const useGeminiStream = (
             handleUserCancelledEvent(userMessageTimestamp);
             break;
           case ServerGeminiEventType.Error:
+            lastErrorEvent = event;
             handleErrorEvent(event.value, userMessageTimestamp);
             break;
           case ServerGeminiEventType.ChatCompressed:
+            lastChatCompressedEvent = event;
             handleChatCompressionEvent(event.value);
             break;
           case ServerGeminiEventType.ToolCallConfirmation:
@@ -561,10 +568,7 @@ export const useGeminiStream = (
             handleSessionTokenLimitExceededEvent(event.value);
             break;
           case ServerGeminiEventType.Finished:
-            handleFinishedEvent(
-              event as ServerGeminiFinishedEvent,
-              userMessageTimestamp,
-            );
+            lastFinishedEvent = event;
             break;
           case ServerGeminiEventType.LoopDetected:
             // handle later because we want to move pending history to history
@@ -578,10 +582,14 @@ export const useGeminiStream = (
           }
         }
       }
+      // Process any remaining tool calls
       if (toolCallRequests.length > 0) {
-        scheduleToolCalls(toolCallRequests, signal);
+        scheduleToolCalls(toolCallRequests, abortSignal);
       }
-      return StreamProcessingStatus.Completed;
+      // Process any remaining finished event
+      if (lastFinishedEvent) {
+        handleFinishedEvent(lastFinishedEvent, userMessageTimestamp);
+      }
     },
     [
       handleContentEvent,
@@ -850,10 +858,13 @@ export const useGeminiStream = (
     ],
   );
 
-  const pendingHistoryItems = [
-    pendingHistoryItemRef.current,
-    pendingToolCallGroupDisplay,
-  ].filter((i) => i !== undefined && i !== null);
+  const pendingHistoryItems = useMemo(
+    () =>
+      [pendingHistoryItemRef.current, pendingToolCallGroupDisplay].filter(
+        (i) => i !== undefined && i !== null,
+      ),
+    [pendingHistoryItemRef, pendingToolCallGroupDisplay],
+  );
 
   useEffect(() => {
     const saveRestorableToolCalls = async () => {

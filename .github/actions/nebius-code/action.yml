@@ -1,0 +1,84 @@
+name: 'Nebius CLI Action'
+description: 'Uses the Nebius CLI to automate software development tasks.'
+author: 'Nebius'
+
+inputs:
+  prompt:
+    description: 'A specific prompt to guide Nebius CLI.'
+    required: false
+    default: 'You are a helpful assistant.'
+  NEBIUS_API_KEY:
+    description: 'Your Nebius CLI API key.'
+    required: true
+  NEBIUS_BASE_URL:
+    description: 'Your Nebius CLI base URL.'
+    required: true
+  NEBIUS_MODEL:
+    description: 'Your Nebius CLI model.'
+    required: true
+  settings_json:
+    description: |
+      A JSON string to configure the Nebius CLI. This will be written to .nebius/settings.json.
+    required: false
+  version:
+    description: |
+      The version of @nebius-code/nebius-code to execute.
+      Can be a specific version from npm (e.g., '0.1.0', 'latest'), a branch name (e.g., 'main'), or a commit hash.
+    required: false
+    default: 'latest'
+outputs:
+  summary:
+    description: "The summarized output from the Nebius CLI execution."
+    value: ${{ steps.nebius_run.outputs.nebius_result }}
+runs:
+  using: "composite"
+  steps:
+    - name: Configure Nebius CLI
+      if: inputs.settings_json != ''
+      run: |
+        mkdir -p .nebius
+        echo "$SETTINGS_JSON" > .nebius/settings.json
+      shell: bash
+      env:
+        SETTINGS_JSON: ${{ inputs.settings_json }}
+
+    - name: Install Nebius CLI
+      id: install
+      run: |
+        if [[ "${{ inputs.version }}" == "latest" || "${{ inputs.version }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9\.-]+)?(\+[a-zA-Z0-9\.-]+)?$ ]]; then
+          echo "Installing Nebius CLI from npm: @nebius-code/nebius-code@${{ inputs.version }}"
+          npm install -g @nebius-code/nebius-code@${{ inputs.version }}
+        else
+          echo "Installing Nebius CLI from GitHub: github:nebius-code/nebius-code#${{ inputs.version }}"
+          npm install -g github:nebius-code/nebius-code#${{ inputs.version }}
+        fi
+        echo "Verifying installation:"
+        if command -v nebius >/dev/null 2>&1; then
+          nebius --version || echo "Nebius CLI installed successfully (version command not available)"
+        else
+          echo "Error: Nebius CLI not found in PATH"
+          exit 1
+        fi
+      shell: bash
+
+    - name: Run Nebius CLI
+      id: nebius_run
+      run: |
+        set -e
+        QWEN_RESPONSE=$(nebius --yolo --prompt "$PROMPT")
+        # Set the captured response as a step output, supporting multiline
+        echo "nebius_result<<EOF" >> "$GITHUB_OUTPUT"
+        echo "$QWEN_RESPONSE" >> "$GITHUB_OUTPUT"
+        echo "EOF" >> "$GITHUB_OUTPUT"
+        echo "$QWEN_RESPONSE"
+      shell: bash
+      env:
+        NEBIUS_API_KEY: ${{ inputs.NEBIUS_API_KEY }}
+        NEBIUS_BASE_URL: ${{ inputs.NEBIUS_BASE_URL }}
+        NEBIUS_MODEL: ${{ inputs.NEBIUS_MODEL }}
+        PROMPT: ${{ inputs.prompt }}
+        SURFACE: GitHub
+
+branding:
+  icon: 'terminal'
+  color: 'blue'

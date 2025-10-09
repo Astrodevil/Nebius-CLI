@@ -104,8 +104,9 @@ export function createContentGeneratorConfig(
 
   if (authType === AuthType.USE_OPENAI && openaiApiKey) {
     contentGeneratorConfig.apiKey = openaiApiKey;
+    // Use model from config (which includes settings.model) instead of just env var
     contentGeneratorConfig.model =
-      process.env.NEBIUS_MODEL || DEFAULT_GEMINI_MODEL;
+      config.getModel() || process.env.NEBIUS_MODEL || DEFAULT_GEMINI_MODEL;
 
     return contentGeneratorConfig;
   }

@@ -1,7 +1,4 @@
 import { CommandKind, SlashCommand } from './types.js';
-import fs from 'node:fs';
-import path from 'node:path';
-import dotenv from 'dotenv';
 
 interface Model {
   id: string;
@@ -18,11 +15,6 @@ export const modelsCommand: SlashCommand = {
   kind: CommandKind.BUILT_IN,
   async action(context, _args) {
     try {
-      // Load .env if it exists
-      const envPath = path.resolve(process.cwd(), '.env');
-      if (fs.existsSync(envPath)) {
-        dotenv.config({ path: envPath });
-      }
       // Get API key from config first, then fallback to environment variables
       let apiKey = context.services.config?.getApiKey();
       if (!apiKey) {

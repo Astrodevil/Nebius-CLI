@@ -564,7 +564,7 @@ export class OpenAIContentGenerator implements ContentGenerator {
 
     // Add combined text if any
     if (combinedText) {
-      combinedParts.push({ text: combinedText.trimEnd() });
+      combinedParts.push({ text: combinedText });
     }
 
     // Add function calls
@@ -1165,11 +1165,7 @@ export class OpenAIContentGenerator implements ContentGenerator {
 
     // Handle text content
     if (choice.message.content) {
-      if (typeof choice.message.content === 'string') {
-        parts.push({ text: choice.message.content.trimEnd() });
-      } else {
-        parts.push({ text: choice.message.content });
-      }
+      parts.push({ text: choice.message.content });
     }
 
     // Handle tool calls
@@ -1254,11 +1250,7 @@ export class OpenAIContentGenerator implements ContentGenerator {
 
       // Handle text content
       if (choice.delta?.content) {
-        if (typeof choice.delta.content === 'string') {
-          parts.push({ text: choice.delta.content.trimEnd() });
-        } else {
-          parts.push({ text: choice.delta.content });
-        }
+        parts.push({ text: choice.delta.content });
       }
 
       // Handle tool calls - only accumulate during streaming, emit when complete
@@ -1777,7 +1769,7 @@ export class OpenAIContentGenerator implements ContentGenerator {
         }
       }
 
-      messageContent = textParts.join('').trimEnd();
+      messageContent = textParts.join('');
     }
 
     const choice: OpenAIChoice = {

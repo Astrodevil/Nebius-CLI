@@ -435,8 +435,9 @@ export async function loadCliConfig(
   const sandboxConfig = await loadSandboxConfig(settings, argv);
   const cliVersion = await getCliVersion();
 
+  // Prioritize settings.model over environment variables
   const existingModel =
-    process.env.NEBIUS_MODEL || process.env.NEBIUS_STUDIO_MODEL;
+    settings.model || process.env.NEBIUS_MODEL || process.env.NEBIUS_STUDIO_MODEL;
   return new Config({
     sessionId,
     embeddingModel: DEFAULT_GEMINI_EMBEDDING_MODEL,
