@@ -1,14 +1,14 @@
-name: Nebius Scheduled PR Triage 🚀
+#  name: Nebius Scheduled PR Triage 🚀
 
-on:
+# on:
   schedule:
     - cron: '*/1454 * * * *' # Runs every 15 minutes (change this later)
   workflow_dispatch: {}
 
-jobs:
-  audit-prs:
-    timeout-minutes: 15
-    if: ${{ github.repository == 'Astrodevil/nebius-cli' }}
+# jobs:
+#  audit-prs:
+#    timeout-minutes: 15
+#    if: ${{ github.repository == 'Astrodevil/nebius-cli' }}
     permissions:
       contents: read
       id-token: write
@@ -21,7 +21,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
 
-      - name: Run PR Triage Script
+ #     - name: Run PR Triage Script
         id: run_triage
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
